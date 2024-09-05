@@ -1,9 +1,8 @@
 <script setup>
-import {onMounted, ref, watchEffect, nextTick} from "vue";
+import {onMounted, ref, watchEffect, nextTick, watch} from "vue";
 import useAuthStore from "../stores/auth.js";
 import api from './../api.js';
 import router from './../router.js';
-import {getjQuery} from "bootstrap/js/src/util/index.js";
 
 
 //states
@@ -16,15 +15,17 @@ const totalElements = ref(0);
 let lastItem = null;
 let observer;
 
-
+let currentPage = 1;
+let pageSize = 5;
 
 getGames();
 async function getGames(){
-  let {data} =  await api.get(`games`);
+  let {data} =  await api.get(`games?page=${currentPage-1}&size=${pageSize}&sortDir=${sortDir.value}&sortOption=${sortOption.value}`);
   games.value.push(...data.content);
   if(totalElements.value === 0){
     totalElements.value = data.totalElements;
   }
+  //increment or reset the current page value
 
   // Infinite scrolling setup
   await nextTick();
@@ -42,6 +43,21 @@ async function getGames(){
     observer.observe(lastItem);
   }
 }
+
+//setup watcher for the sort options or sort dirs changes
+watch(sortOption, (newVal, oldVal) =>{
+  sortOption.value = newVal;
+  //reset the games array
+  games.value = [];
+  getGames();
+});
+
+watch(sortDir, (newVal, oldVal) =>{
+  sortDir.value = newVal;
+  //reset the games array
+  games.value = [];
+  getGames();
+});
 
 onMounted(()=>{
   //scroll to the top

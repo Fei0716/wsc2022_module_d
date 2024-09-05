@@ -28,14 +28,14 @@ api.interceptors.response.use((config)=>{
     console.error(error);
     const authStore = useAuthStore();
     //if the error is 401, reset the token and username and notify user to login or signup again
-    // if(error.response.status === 401){
-    //     alert("Your session has expired, please login again");
-    //     authStore.username = null;
-    //     authStore.token = null;
-    //
-    //     //redirect to login page
-    //     router.push({name: "SignIn"});
-    // }
+    if(error.response.status === 401){
+        alert("Your session has expired, please login again");
+        authStore.username = null;
+        authStore.token = null;
+
+        //redirect to login page
+        router.push({name: "SignIn"});
+    }
     return Promise.reject(error);
 });
 

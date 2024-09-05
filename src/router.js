@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from "vue-router";
+import {createRouter, createWebHistory, useRoute} from "vue-router";
 import SignUp from "./views/SignUp.vue";
 import SignIn from "./views/SignIn.vue";
 import Game from "./views/Game.vue";
@@ -70,21 +70,35 @@ const routes = [
 
 
 ];
-
+let route = useRoute();
 const router = createRouter({
     history: createWebHistory(),
     routes
 });
+const game = ref({});
+
+async function getGame() {
+    console.log(route.params.id);
+    let {data} = await api.get(`games/${route.params.id}`);
+    game.value = data;
+
+}
 
 //setup middleware
-router.beforeEach((to, from, next) =>{
+router.beforeEach(async (to, from, next) =>{
     const authStore  = useAuthStore();
+
     //if already logged in or registered redirect back to the home page
     if((to.name === "SignIn"|| to.name === "SignUp") && authStore.isValidated){
         next({name: "Home"});
     }else if(to.meta.guard === "auth" && !authStore.isValidated){
         //if trying to access routes with auth  guard
         next({name: "Sign In"});
+    }else if(to.name === "ManageGame"){
+        //check for whether is the author or not
+        await getGame();
+        next();
+
     }
     next();
 });
